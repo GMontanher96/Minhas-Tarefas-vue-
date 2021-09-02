@@ -8,42 +8,69 @@
 </template>
 
 <script>
-import TasksProgress from './components/TasksProgress.vue'
+import TasksProgress from "./components/TasksProgress.vue";
 import TaskGrid from "./components/TaskGrid.vue";
 import NewTask from "./components/NewTask.vue";
 
 export default {
   // eslint-disable-next-line vue/no-unused-components
-  components: {TasksProgress, TaskGrid, NewTask },
+  components: { TasksProgress, TaskGrid, NewTask },
   data() {
     return {
       tasks: [],
     };
   },
   computed: {
- progress() {
-   const total = this.tasks.length
-   const done = this.tasks.filter(t => !t.pending).length
-   return Math.round(done / total * 100) || 0
- }
+    progress() {
+      const total = this.tasks.length;
+      const done = this.tasks.filter((t) => !t.pending).length;
+      return Math.round((done / total) * 100) || 0;
+    },
+  },
+  watch: {
+    tasks: {
+      // obj
+      deep: true,
+      handler() {
+        localStorage.setItem("tasks", JSON.stringify(this.tasks));
+      },
+    },
   },
   methods: {
     addTask(task) {
-      const sameName = (t) => t.name === task.name;
-      const reallyNew = this.tasks.filter(sameName).length == 0;
+      const sameName = (t) => t.name === task.name; // compara se ja tem uma task cadastrada.
+      const reallyNew = this.tasks.filter(sameName).length == 0; // filter [filtra] o elemento da função
       if (reallyNew) {
         this.tasks.push({
           name: task.name,
           pending: task.pending || true,
         });
+        this.$notification.success({
+          message: `Notification`,
+          description: "TASK CADASTRADA COM SUCESSO.",
+        });
+      } else if (!reallyNew) {
+        this.$notification.error({
+          message: `Notification`,
+          description: "NOME DA TASK JÁ EXISTE.",
+        });
       }
     },
     deleteTask(i) {
       this.tasks.splice(i, 1);
+        this.$notification.success({
+          message: `Notification`,
+          description: "TASK EXCLUIDA COM SUCESSO.",
+        });
     },
     toggleTaskState(i) {
       this.tasks[i].pending = !this.tasks[i].pending;
     },
+  },
+  created() {
+    const json = localStorage.getItem("tasks");
+    const array = JSON.parse(json);
+    this.tasks = Array.isArray(array) ? array : [];
   },
 };
 </script>
